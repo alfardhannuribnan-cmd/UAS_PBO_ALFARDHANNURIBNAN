@@ -3,17 +3,13 @@
 error_reporting(E_ALL);
 ini_set("display_errors",1);
 
-require_once "Database.php";
+require_once("Database.php");
 
 $db =
 new Database();
 
 $koneksi =
 $db->getKoneksi();
-
-if(!$koneksi){
-die("Koneksi gagal");
-}
 
 ?>
 
@@ -29,30 +25,117 @@ Registrasi Pembayaran Kuliah
 
 <style>
 
-body{
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
 font-family:Arial;
+}
+
+body{
+display:flex;
+background:#f3f5fa;
+}
+
+.sidebar{
+
+width:260px;
+
+height:100vh;
+
+background:#183b6b;
+
+color:white;
+
 padding:30px;
-background:#f5f5f5;
+
+position:fixed;
+
+}
+
+.sidebar h2{
+
+margin-bottom:40px;
+
+}
+
+.sidebar a{
+
+display:block;
+
+color:white;
+
+text-decoration:none;
+
+padding:15px;
+
+margin-bottom:10px;
+
+border-radius:10px;
+
+}
+
+.sidebar a:hover{
+
+background:#2d5da8;
+
+}
+
+.content{
+
+margin-left:280px;
+
+padding:30px;
+
+width:100%;
+
+}
+
+.card{
+
+background:white;
+
+padding:25px;
+
+border-radius:12px;
+
+margin-bottom:35px;
+
+box-shadow:
+0 3px 10px rgba(0,0,0,.1);
+
 }
 
 table{
-width:100%;
-border-collapse:collapse;
-background:white;
-}
 
-th,td{
-padding:10px;
-border:1px solid black;
+width:100%;
+
+border-collapse:collapse;
+
 }
 
 th{
+
 background:#0d6efd;
+
 color:white;
+
 }
 
-h2{
-margin-top:40px;
+td,th{
+
+padding:12px;
+
+border:1px solid #ddd;
+
+}
+
+.tagihan{
+
+font-weight:bold;
+
+color:#0d6efd;
+
 }
 
 </style>
@@ -61,56 +144,65 @@ margin-top:40px;
 
 <body>
 
+<div class="sidebar">
+
+<h2>
+🎓 Sistem UKT
+</h2>
+
+<a href="#mandiri">
+Mahasiswa Mandiri
+</a>
+
+<a href="#bidik">
+Mahasiswa Bidikmisi
+</a>
+
+<a href="#prestasi">
+Mahasiswa Prestasi
+</a>
+
+</div>
+
+<div class="content">
+
 <h1>
-Registrasi Pembayaran Mahasiswa
+Daftar Registrasi Pembayaran Kuliah
 </h1>
 
 <?php
 
-$jenisArray=
-[
+$kategori=[
 "Mandiri",
 "Bidikasi",
 "Prestasi"
 ];
 
-foreach($jenisArray as $jenis){
+foreach($kategori as $jenis){
 
-echo "<h2>$jenis</h2>";
-
-$sql=
-"SELECT *
-FROM tabel_mahasiswa
-WHERE jenis_pembiayaan='$jenis'";
-
-$data=
-$koneksi
-->query($sql);
-
-if(!$data){
-
-echo
-"KESALAHAN QUERY : "
-.
-$koneksi
-->error;
-
-continue;
-
-}
-
-if(
-$data->num_rows==0
-){
-
-echo
-"Tidak ada data";
-
-continue;
-
-}
+$id=
+strtolower(
+$jenis
+);
 
 ?>
+
+<div
+class="card"
+
+id="<?= $id ?>"
+
+>
+
+<h2>
+
+Kategori :
+
+<?= $jenis ?>
+
+</h2>
+
+<br>
 
 <table>
 
@@ -120,17 +212,27 @@ continue;
 <th>Nama</th>
 <th>NIM</th>
 <th>Semester</th>
-<th>Tagihan</th>
-<th>Spesifikasi</th>
+<th>Total Tagihan</th>
+<th>Data Akademik</th>
 
 </tr>
 
 <?php
 
+$query=
+"
+SELECT *
+FROM tabel_mahasiswa
+WHERE jenis_pembiayaan='$jenis'
+";
+
+$data=
+$koneksi
+->query($query);
+
 while(
 $row=
-$data
-->fetch_assoc()
+$data->fetch_assoc()
 ){
 
 if(
@@ -142,16 +244,13 @@ $row["tarif_ukt_nominal"]
 +
 100000;
 
-$spesifikasi=
-"UKT :
+$info=
 "
-.
-$row["golongan_ukt"]
-.
+Golongan :
+".$row["golongan_ukt"].
+
 "<br>Wali :
-"
-.
-$row["nama_wali"];
+".$row["nama_wali"];
 
 }
 
@@ -161,15 +260,14 @@ $jenis=="Bidikasi"
 
 $tagihan=0;
 
-$spesifikasi=
-"KIP :
+$info=
 "
-.
-$row["nomor_kip_kuliah"]
-.
+KIP :
+".$row["nomor_kip_kuliah"].
+
 "<br>Subsidi :
-Rp "
-.
+Rp ".
+
 number_format(
 $row["dana_saku_subsidi"]
 );
@@ -183,13 +281,13 @@ $row["tarif_ukt_nominal"]
 *
 0.25;
 
-$spesifikasi=
-$row["nama_instansi_beasiswa"]
-.
-"<br>IPK :
+$info=
 "
-.
-$row["minimal_ipk_syarat"];
+Instansi :
+".$row["nama_instansi_beasiswa"].
+
+"<br>IPK :
+".$row["minimal_ipk_syarat"];
 
 }
 
@@ -197,21 +295,34 @@ $row["minimal_ipk_syarat"];
 
 <tr>
 
-<td><?= $row["id_mahasiswa"] ?></td>
-
-<td><?= $row["nama_mahasiswa"] ?></td>
-
-<td><?= $row["nim"] ?></td>
-
-<td><?= $row["semester"] ?></td>
-
 <td>
-Rp
-<?= number_format($tagihan) ?>
+<?= $row["id_mahasiswa"] ?>
 </td>
 
 <td>
-<?= $spesifikasi ?>
+<?= $row["nama_mahasiswa"] ?>
+</td>
+
+<td>
+<?= $row["nim"] ?>
+</td>
+
+<td>
+<?= $row["semester"] ?>
+</td>
+
+<td class="tagihan">
+
+Rp
+
+<?= number_format($tagihan) ?>
+
+</td>
+
+<td>
+
+<?= $info ?>
+
 </td>
 
 </tr>
@@ -220,7 +331,11 @@ Rp
 
 </table>
 
+</div>
+
 <?php } ?>
+
+</div>
 
 </body>
 
