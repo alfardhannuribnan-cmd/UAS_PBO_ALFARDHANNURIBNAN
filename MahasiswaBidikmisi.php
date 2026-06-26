@@ -1,7 +1,6 @@
 <?php
 
 require_once "Mahasiswa.php";
-require_once "Database.php";
 
 class MahasiswaBidikmisi extends Mahasiswa
 {
@@ -15,22 +14,18 @@ class MahasiswaBidikmisi extends Mahasiswa
 
     public function tampilkanSpesifikasiAkademik()
     {
-        return "Mahasiswa Bidikmisi";
+        return "Pembiayaan Bidikmisi";
     }
 
-    public function ambilDataBidikmisi()
+    public function ambilDataBidikmisi($koneksi)
     {
-        $db =
-        new Database();
-
         $query =
-        "SELECT * FROM tabel_mahasiswa
+        "SELECT *
+        FROM tabel_mahasiswa
         WHERE jenis_pembiayaan='Bidikasi'";
 
         return
-        $db
-        ->getKoneksi()
-        ->query($query);
+        $koneksi->query($query);
     }
 }
 
